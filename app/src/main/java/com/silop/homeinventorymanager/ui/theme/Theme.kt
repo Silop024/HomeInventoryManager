@@ -7,9 +7,13 @@ import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 
 private val DarkColorPalette = darkColors(
-    primary = Purple200,
-    primaryVariant = Purple700,
-    secondary = Teal200
+    primary = Silver,
+    primaryVariant = Alta,
+    secondary = Glandis,
+    secondaryVariant = VividTangerine,
+    background = EbonyClay,
+    surface = EastBay
+
 )
 
 private val LightColorPalette = lightColors(
@@ -32,11 +36,12 @@ fun HomeInventoryManagerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) {
+    /*val colors = if (darkTheme) {
         DarkColorPalette
     } else {
         LightColorPalette
-    }
+    }*/
+    val colors = DarkColorPalette
 
     MaterialTheme(
         colors = colors,

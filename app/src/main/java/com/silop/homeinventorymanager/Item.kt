@@ -1,3 +1,23 @@
 package com.silop.homeinventorymanager
 
-data class Item(val id: Int, val name: String, var location: String, var last_needed: String)
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "item_table")
+data class Item(
+    @ColumnInfo(name = "item_id")
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0,
+
+    @ColumnInfo(name = "Item_name")
+    val name: String,
+
+    @ColumnInfo(name = "item_location")
+    var location: String,
+
+    @ColumnInfo(name = "item_amount")
+    var amount: Int,
+
+    @ColumnInfo(name = "item_last_needed")
+    var lastNeeded: String)
