@@ -11,7 +11,7 @@ data class Item(
     var id: Int = 0,
 
     @ColumnInfo(name = "Item_name")
-    val name: String,
+    var name: String,
 
     @ColumnInfo(name = "item_location")
     var location: String,

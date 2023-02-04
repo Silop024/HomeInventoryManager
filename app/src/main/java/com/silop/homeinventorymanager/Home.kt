@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -39,67 +40,75 @@ class Home : ComponentActivity() {
 }
 
 @Composable
-fun ItemRow(item: Item) {
+fun ItemRow(modifier: Modifier, item: Item) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { println("Item Row clicked") },
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = item.name,
-            modifier = Modifier.size(width = 100.dp, height = 25.dp),
+            modifier = modifier.size(width = 100.dp, height = 25.dp),
             color = MaterialTheme.colors.surface
         )
         Text(
             text = "${item.amount}x",
-            modifier = Modifier.size(width = 50.dp, height = 25.dp),
+            modifier = modifier.size(width = 50.dp, height = 25.dp),
             color = MaterialTheme.colors.secondaryVariant
         )
         Text(
             text = item.lastNeeded,
-            modifier = Modifier.size(width = 100.dp, height = 25.dp),
+            modifier = modifier.size(width = 100.dp, height = 25.dp),
             color = MaterialTheme.colors.surface
         )
     }
 }
 
 @Composable
-fun ItemGroup(inventory_items: List<Item>) {
+fun ItemGroup(modifier: Modifier, inventory_items: List<Item>) {
     Column(
-        modifier = Modifier.background(MaterialTheme.colors.primaryVariant, RoundedCornerShape(15))
+        modifier = modifier
+            .background(
+                color = MaterialTheme.colors.primaryVariant,
+                shape = RoundedCornerShape(15)
+            )
+            .clickable { println("Item Group clicked") }
     ) {
         Text(
             text = inventory_items.first().location,
-            modifier = Modifier.padding(5.dp)
+            modifier = modifier.padding(start = 10.dp, top = 5.dp, bottom = 5.dp),
+            color = MaterialTheme.colors.background
         )
-        inventory_items.forEach { ItemRow(item = it)}
+        inventory_items.forEach { ItemRow(modifier = modifier, item = it) }
     }
 }
 
 @Composable
-fun ItemList(items: List<Item>) {
+fun ItemList(modifier: Modifier, items: List<Item>) {
     val rooms = items.sortedByDescending { it.lastNeeded }.groupBy { it.location }
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(5.dp),
         contentPadding = PaddingValues(5.dp)
     ) {
-        rooms.values.forEach { item { ItemGroup(inventory_items = it)} }
+        rooms.values.forEach { item { ItemGroup(modifier = modifier, inventory_items = it)} }
     }
 }
 
 @Composable
-fun SearchField() {
+fun SearchField(modifier: Modifier) {
     var text by remember { mutableStateOf(TextFieldValue("")) }
     TextField(
         value = text,
         onValueChange = { text = it },
-        modifier = Modifier
+        modifier = modifier
             .background(
                 color = MaterialTheme.colors.primary,
                 shape = CircleShape
             )
             .width(250.dp),
-        placeholder = { Text(text = "Search", color = MaterialTheme.colors.surface) },
+        placeholder = { Text(text = "Search", color = MaterialTheme.colors.onPrimary) },
         label = null,
         colors = TextFieldDefaults.textFieldColors(
             focusedIndicatorColor = Color.Transparent,
@@ -112,53 +121,61 @@ fun SearchField() {
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun HomeView() {
-    val test = listOf(
+fun AddItemButton(modifier: Modifier) {
+    Button(
+        onClick = {
+                  println("Add button clicked")
+        },
+        shape = CircleShape,
+        modifier = modifier
+            .fillMaxHeight()
+            .width(50.dp)
+    ) {
+        Text(
+            text = "+",
+            style = TextStyle(
+                fontSize = 30.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                platformStyle = PlatformTextStyle(
+                    includeFontPadding = false
+                ),
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.None
+                ),
+                color = MaterialTheme.colors.onPrimary
+            )
+        )
+    }
+}
+
+@Composable
+fun HomeView(modifier: Modifier = Modifier) {
+    val items = listOf(
         Item(0, "Banana", "Kitchen", 1, "2023-01-31"),
         Item(1, "Pineapple", "Kitchen", 1, "2023-02-01"),
         Item(2, "Cutie Patutie", "Bedroom", 1, "2023-02-02"),
         Item(3, "Paper", "Living Room", 1, "2023-02-01"),
         Item(4, "TV", "Living Room", 1, "2023-01-23")
     )
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colors.background)
-            .padding(bottom = 15.dp),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        ItemList(items = test)
-        Row(
-            modifier = Modifier
-                .height(50.dp)
-                .fillMaxWidth()
-                .padding(start = 15.dp, end = 15.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+    Surface {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(bottom = 15.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            SearchField()
-            Button(
-                onClick = {},
-                shape = CircleShape,
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(50.dp)
+            ItemList(modifier, items)
+            Row(
+                modifier = modifier
+                    .height(50.dp)
+                    .fillMaxWidth()
+                    .padding(start = 15.dp, end = 15.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "+",
-                    style = TextStyle(
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        textAlign = TextAlign.Center,
-                        platformStyle = PlatformTextStyle(
-                            includeFontPadding = false
-                        ),
-                        lineHeightStyle = LineHeightStyle(
-                            alignment = LineHeightStyle.Alignment.Center,
-                            trim = LineHeightStyle.Trim.None
-                        ),
-                        color = MaterialTheme.colors.surface
-                    )
-                )
+                SearchField(modifier)
+                AddItemButton(modifier)
             }
         }
     }
