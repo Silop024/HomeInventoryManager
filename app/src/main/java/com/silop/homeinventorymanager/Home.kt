@@ -2,9 +2,6 @@
 
 package com.silop.homeinventorymanager
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -27,17 +24,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.silop.homeinventorymanager.ui.theme.HomeInventoryManagerTheme
-
-class Home : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            HomeInventoryManagerTheme {
-                HomeView()
-            }
-        }
-    }
-}
 
 @Composable
 fun ItemRow(modifier: Modifier, item: Item) {
@@ -151,14 +137,7 @@ fun AddItemButton(modifier: Modifier) {
 }
 
 @Composable
-fun HomeView(modifier: Modifier = Modifier) {
-    val items = listOf(
-        Item(0, "Banana", "Kitchen", 1, "2023-01-31"),
-        Item(1, "Pineapple", "Kitchen", 1, "2023-02-01"),
-        Item(2, "Cutie Patutie", "Bedroom", 1, "2023-02-02"),
-        Item(3, "Paper", "Living Room", 1, "2023-02-01"),
-        Item(4, "TV", "Living Room", 1, "2023-01-23")
-    )
+fun HomeView(modifier: Modifier = Modifier, viewModel: ItemViewModel) {
     Surface {
         Column(
             modifier = modifier
@@ -166,7 +145,7 @@ fun HomeView(modifier: Modifier = Modifier) {
                 .padding(bottom = 15.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            ItemList(modifier, items)
+            ItemList(modifier, viewModel.items.value!!)
             Row(
                 modifier = modifier
                     .height(50.dp)
@@ -183,7 +162,34 @@ fun HomeView(modifier: Modifier = Modifier) {
 @Preview(name = "Home Preview", device = "id:One_Plus_Nord_2")
 @Composable
 fun DefaultPreview() {
+    val items = listOf(
+        Item(0, "Banana", "Kitchen", 1, "2023-01-31"),
+        Item(1, "Pineapple", "Kitchen", 1, "2023-02-01"),
+        Item(2, "Cutie Patutie", "Bedroom", 1, "2023-02-02"),
+        Item(3, "Paper", "Living Room", 1, "2023-02-01"),
+        Item(4, "TV", "Living Room", 1, "2023-01-23")
+    )
+    val modifier = Modifier
     HomeInventoryManagerTheme {
-        HomeView()
+        Surface {
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(bottom = 15.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                ItemList(modifier, items)
+                Row(
+                    modifier = modifier
+                        .height(50.dp)
+                        .fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    SearchField(modifier)
+                    AddItemButton(modifier)
+                }
+            }
+        }
     }
 }
