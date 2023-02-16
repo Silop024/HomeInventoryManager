@@ -107,10 +107,10 @@ fun SearchField(modifier: Modifier) {
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun AddItemButton(modifier: Modifier) {
+fun AddItemButton(modifier: Modifier, viewModel: ItemViewModel) {
     Button(
         onClick = {
-                  println("Add button clicked")
+            viewModel.addItem(Item(name = "Phone", location = "Bed", amount = 1, lastNeeded = "Today"))
         },
         shape = CircleShape,
         modifier = modifier
@@ -138,6 +138,7 @@ fun AddItemButton(modifier: Modifier) {
 
 @Composable
 fun HomeView(modifier: Modifier = Modifier, viewModel: ItemViewModel) {
+    val itemsList = viewModel.items.collectAsState(emptyList()).value
     Surface {
         Column(
             modifier = modifier
@@ -145,7 +146,7 @@ fun HomeView(modifier: Modifier = Modifier, viewModel: ItemViewModel) {
                 .padding(bottom = 15.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            ItemList(modifier, viewModel.items.value!!)
+            ItemList(modifier, itemsList)
             Row(
                 modifier = modifier
                     .height(50.dp)
@@ -154,7 +155,7 @@ fun HomeView(modifier: Modifier = Modifier, viewModel: ItemViewModel) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 SearchField(modifier)
-                AddItemButton(modifier)
+                AddItemButton(modifier, viewModel)
             }
         }
     }
@@ -187,7 +188,7 @@ fun DefaultPreview() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     SearchField(modifier)
-                    AddItemButton(modifier)
+                    //AddItemButton(modifier)
                 }
             }
         }

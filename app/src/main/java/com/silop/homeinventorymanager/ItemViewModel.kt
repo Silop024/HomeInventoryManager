@@ -1,24 +1,20 @@
 package com.silop.homeinventorymanager
 
-import android.app.Application
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.silop.homeinventorymanager.restapi.ItemService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import retrofit2.await
 
-class ItemViewModel(private val application: Application) : ViewModel() {
-    private val itemService = (application as HomeInventoryApplication).retrofit
-        .create(ItemService::class.java)
+class ItemViewModel : ViewModel() {
+    private val itemService = ItemService.getService()
 
-    private val _items = MutableLiveData<List<Item>>()
+    private val _items = MutableStateFlow<List<Item>>(emptyList())
 
-    val items: LiveData<List<Item>> = _items
+    val items: Flow<List<Item>>
+        get() = _items
 
     fun loadItems() {
         viewModelScope.launch {
@@ -29,7 +25,7 @@ class ItemViewModel(private val application: Application) : ViewModel() {
 
     fun addItem(item: Item) {
         viewModelScope.launch {
-            itemService.createItem(item)
+            itemService.createItem(item).await()
             val items = itemService.getItems()
             _items.value = items.await()
         }
@@ -37,25 +33,9 @@ class ItemViewModel(private val application: Application) : ViewModel() {
 
     fun removeItem(item: Item) {
         viewModelScope.launch {
-            itemService.deleteUser(item.id)
+            itemService.deleteUser(item.id).await()
             val items = itemService.getItems()
             _items.value = items.await()
         }
-    }
-
-    fun fetchItems() {
-        itemService.getItems().enqueue(object : Callback<List<Item>> {
-            override fun onResponse(call: Call<List<Item>>, response: Response<List<Item>>) {
-                if (response.isSuccessful) {
-                    _items.value = response.body()
-                } else {
-                    // TODO("Handle error")
-                }
-            }
-
-            override fun onFailure(call: Call<List<Item>>, t: Throwable) {
-                // TODO("Handle error")
-            }
-        })
     }
 }
