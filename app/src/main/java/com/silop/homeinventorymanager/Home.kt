@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTextApi::class)
-
 package com.silop.homeinventorymanager
 
 import androidx.compose.foundation.background
@@ -45,7 +43,7 @@ fun ItemRow(modifier: Modifier, item: Item) {
             color = MaterialTheme.colors.secondaryVariant
         )
         Text(
-            text = item.lastNeeded,
+            text = item.lastNeeded ?: "",
             modifier = modifier.size(width = 100.dp, height = 25.dp),
             color = MaterialTheme.colors.surface
         )
@@ -78,7 +76,7 @@ fun ItemList(modifier: Modifier, items: List<Item>) {
         verticalArrangement = Arrangement.spacedBy(5.dp),
         contentPadding = PaddingValues(5.dp)
     ) {
-        rooms.values.forEach { item { ItemGroup(modifier = modifier, inventory_items = it)} }
+        rooms.values.forEach { item { ItemGroup(modifier = modifier, inventory_items = it) } }
     }
 }
 
@@ -105,12 +103,18 @@ fun SearchField(modifier: Modifier) {
     )
 }
 
-@OptIn(ExperimentalTextApi::class)
 @Composable
-fun AddItemButton(modifier: Modifier) {
+fun AddItemButton(modifier: Modifier, viewModel: ItemViewModel) {
     Button(
         onClick = {
-                  println("Add button clicked")
+            viewModel.addItem(
+                Item(
+                    name = "Phone",
+                    location = "Bed",
+                    amount = 1,
+                    lastNeeded = "Today"
+                )
+            )
         },
         shape = CircleShape,
         modifier = modifier
@@ -138,6 +142,7 @@ fun AddItemButton(modifier: Modifier) {
 
 @Composable
 fun HomeView(modifier: Modifier = Modifier, viewModel: ItemViewModel) {
+    val itemsList = viewModel.items.collectAsState(emptyList()).value
     Surface {
         Column(
             modifier = modifier
@@ -145,7 +150,7 @@ fun HomeView(modifier: Modifier = Modifier, viewModel: ItemViewModel) {
                 .padding(bottom = 15.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            ItemList(modifier, viewModel.items.value!!)
+            ItemList(modifier, itemsList)
             Row(
                 modifier = modifier
                     .height(50.dp)
@@ -154,11 +159,12 @@ fun HomeView(modifier: Modifier = Modifier, viewModel: ItemViewModel) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 SearchField(modifier)
-                AddItemButton(modifier)
+                AddItemButton(modifier, viewModel)
             }
         }
     }
 }
+
 @Preview(name = "Home Preview", device = "id:One_Plus_Nord_2")
 @Composable
 fun DefaultPreview() {
@@ -187,7 +193,7 @@ fun DefaultPreview() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     SearchField(modifier)
-                    AddItemButton(modifier)
+                    //AddItemButton(modifier)
                 }
             }
         }

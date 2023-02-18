@@ -10,7 +10,7 @@ class HomeInventoryApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         retrofit = Retrofit.Builder()
-            .baseUrl("URL HERE")
+            .baseUrl("https://localhost:8080")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
