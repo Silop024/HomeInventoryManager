@@ -15,6 +15,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -201,6 +202,7 @@ fun AddButton(viewModel: ItemViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ItemDialog(
     item: Item,
@@ -214,6 +216,9 @@ fun ItemDialog(
     var location by remember { mutableStateOf(item.location) }
     var amount by remember { mutableStateOf(item.amount.toString()) }
 
+    var dropDownExpanded by remember { mutableStateOf(false) }
+    val locations = listOf("Living Room", "Kitchen", "Closet", "Bathroom", "Basement")
+
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(titleText) },
@@ -224,11 +229,36 @@ fun ItemDialog(
                     onValueChange = { name = it },
                     label = { Text("Name") }
                 )
-                OutlinedTextField(
+                ExposedDropdownMenuBox(
+                    expanded = dropDownExpanded,
+                    onExpandedChange = { dropDownExpanded = !dropDownExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = location,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Location") }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = dropDownExpanded,
+                        onDismissRequest = { dropDownExpanded = false }
+                    ) {
+                        locations.forEach {
+                            DropdownMenuItem(
+                                onClick = {
+                                    location = it
+                                    dropDownExpanded = false
+                                }) {
+                                Text(text = it)
+                            }
+                        }
+                    }
+                }
+                /*OutlinedTextField(
                     value = location,
                     onValueChange = { location = it },
                     label = { Text("Location") }
-                )
+                )*/
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
