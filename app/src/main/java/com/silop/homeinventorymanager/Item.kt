@@ -5,5 +5,5 @@ data class Item(
     var name: String,
     var location: String,
     var amount: Int,
-    var lastNeeded: String
+    var lastNeeded: String?
 )

@@ -2,15 +2,16 @@ package com.silop.homeinventorymanager
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.silop.homeinventorymanager.restapi.ItemService
+import com.silop.homeinventorymanager.restapi.ItemApi
+import com.silop.homeinventorymanager.restapi.itemApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
 import retrofit2.await
+import retrofit2.converter.gson.GsonConverterFactory
 
 class ItemViewModel : ViewModel() {
-    private val itemService = ItemService.getService()
-
     private val _items = MutableStateFlow<List<Item>>(emptyList())
 
     val items: Flow<List<Item>>
@@ -18,24 +19,32 @@ class ItemViewModel : ViewModel() {
 
     fun loadItems() {
         viewModelScope.launch {
-            val items = itemService.getItems()
-            _items.value = items.await()
+            val items = itemApi.getItems()
+            _items.value = items
         }
     }
 
     fun addItem(item: Item) {
         viewModelScope.launch {
-            itemService.createItem(item).await()
-            val items = itemService.getItems()
-            _items.value = items.await()
+            itemApi.createItem(item)
+            val items = itemApi.getItems()
+            _items.value = items
+        }
+    }
+
+    fun updateItem(item: Item) {
+        viewModelScope.launch {
+            itemApi.updateItem(item.id, item)
+            val items = itemApi.getItems()
+            _items.value = items
         }
     }
 
     fun removeItem(item: Item) {
         viewModelScope.launch {
-            itemService.deleteUser(item.id).await()
-            val items = itemService.getItems()
-            _items.value = items.await()
+            itemApi.deleteItem(item.id)
+            val items = itemApi.getItems()
+            _items.value = items
         }
     }
 }

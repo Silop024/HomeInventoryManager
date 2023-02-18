@@ -11,17 +11,15 @@ interface ItemApi {
     suspend fun getItems(): List<Item>
     @POST("items")
     suspend fun createItem(@Body item: Item): Item
-
     @PUT("items/{id}")
-    suspend fun updateItem(@Path("id") id: Int, @Body item: Item): Item
+    suspend fun updateItem(@Path("id") id: Int, @Body item: Item): Boolean
     @DELETE("items/{id}")
     suspend fun deleteItem(@Path("id") id: Int)
-
-    companion object {
-        private val retrofit = Retrofit.Builder()
-            .baseUrl("https://localhost:8080")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        fun getService(): ItemApi = retrofit.create(ItemApi::class.java)
-    }
 }
+
+private val retrofit = Retrofit.Builder()
+    .baseUrl("http://192.168.0.10:8080")
+    .addConverterFactory(GsonConverterFactory.create())
+    .build()
+
+val itemApi: ItemApi = retrofit.create(ItemApi::class.java)
