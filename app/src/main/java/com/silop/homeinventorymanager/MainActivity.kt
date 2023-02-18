@@ -75,13 +75,12 @@ fun ItemList(itemsList: List<Item>, viewModel: ItemViewModel, modifier: Modifier
 
     Column {
         for (i in 0 until itemsGroup.size) {
-            val j = i + 1
             ItemGroup(
-                itemsGroup = itemsGroup[i], viewModel = viewModel, color = when {
-                    j % 4 == 0 -> MaterialTheme.colors.secondary
-                    j % 3 == 0 -> MaterialTheme.colors.secondaryVariant
-                    j % 2 == 0 -> MaterialTheme.colors.primaryVariant
-                    else -> MaterialTheme.colors.primary
+                itemsGroup = itemsGroup[i], viewModel = viewModel, color = when (i % 4) {
+                    0 -> MaterialTheme.colors.primary
+                    1 -> MaterialTheme.colors.primaryVariant
+                    2 -> MaterialTheme.colors.secondaryVariant
+                    else -> MaterialTheme.colors.secondary
                 }
             )
         }
@@ -90,20 +89,41 @@ fun ItemList(itemsList: List<Item>, viewModel: ItemViewModel, modifier: Modifier
 
 @Composable
 fun ItemGroup(itemsGroup: List<Item>, viewModel: ItemViewModel, color: Color) {
-    Column {
+    var collapsed by remember { mutableStateOf(true) }
+
+    Column(modifier = Modifier.clickable { collapsed = !collapsed }) {
         Text(
             text = itemsGroup[0].location,
             style = MaterialTheme.typography.h3,
             color = MaterialTheme.colors.onBackground,
             modifier = Modifier.padding(top = 3.dp, start = 12.dp)
         )
-        LazyColumn(
-            modifier = Modifier
-                .padding(top = 3.dp, start = 3.dp, end = 3.dp)
-                .background(color, shape = MaterialTheme.shapes.large)
-        ) {
-            items(items = itemsGroup) { item ->
-                ItemRow(item = item, viewModel)
+
+        if (collapsed) {
+            Row(
+                modifier = Modifier
+                    .padding()
+                    .height(32.dp)
+                    .background(color, shape = MaterialTheme.shapes.medium)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Expand",
+                    style = MaterialTheme.typography.caption,
+                    color = MaterialTheme.colors.onPrimary
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(top = 3.dp, start = 3.dp, end = 3.dp)
+                    .background(color, shape = MaterialTheme.shapes.large)
+            ) {
+                items(items = itemsGroup) { item ->
+                    ItemRow(item = item, viewModel)
+                }
             }
         }
     }
@@ -140,17 +160,21 @@ fun ItemRow(item: Item, viewModel: ItemViewModel) {
     }
 
     if (showDialog) {
-        ItemDialog(item = item, titleText = "Edit item", confirmText = "Edit", onDismissRequest = { showDialog = false }) {
-            viewModel.updateItem(it)
-            showDialog = false
-        }
+        ItemDialog(
+            item = item,
+            titleText = "Edit item",
+            confirmText = "Edit",
+            onDismissRequest = { showDialog = false },
+            onDelete = { viewModel.removeItem(item); showDialog = false },
+            onConfirm = { viewModel.updateItem(it); showDialog = false }
+        )
     }
 }
 
 @Composable
 fun AddButton(viewModel: ItemViewModel) {
     var showDialog by remember { mutableStateOf(false) }
-    
+
     Button(
         onClick = { showDialog = true },
         shape = CircleShape,
@@ -164,19 +188,28 @@ fun AddButton(viewModel: ItemViewModel) {
             color = MaterialTheme.colors.onSecondary
         )
     }
-    
+
     if (showDialog) {
         ItemDialog(item = Item(
             name = "", location = "", amount = 1, lastNeeded = Date().toString()
-        ), titleText = "Add item", confirmText = "Add", onDismissRequest = { showDialog = false }) {
-            viewModel.addItem(it)
-            showDialog = false
-        }
+        ),
+            titleText = "Add item",
+            confirmText = "Add",
+            onDismissRequest = { showDialog = false },
+            onConfirm = { viewModel.addItem(it); showDialog = false }
+        )
     }
 }
 
 @Composable
-fun ItemDialog(item: Item, titleText: String, confirmText: String, onDismissRequest: () -> Unit, onConfirm: (Item) -> Unit) {
+fun ItemDialog(
+    item: Item,
+    titleText: String,
+    confirmText: String,
+    onDismissRequest: () -> Unit,
+    onDelete: () -> Unit = {},
+    onConfirm: (Item) -> Unit
+) {
     var name by remember { mutableStateOf(item.name) }
     var location by remember { mutableStateOf(item.location) }
     var amount by remember { mutableStateOf(item.amount.toString()) }
@@ -204,22 +237,42 @@ fun ItemDialog(item: Item, titleText: String, confirmText: String, onDismissRequ
                 )
             }
         },
-        confirmButton = {
-            Button(
-                onClick = {
-                    item.name = name
-                    item.location = location
-                    item.amount = amount.toInt()
-                    onConfirm(item)
-                }
+        buttons = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 6.dp, start = 6.dp, end = 6.dp),
+                horizontalArrangement = Arrangement.Center
             ) {
-                Text(confirmText)
+                var fontSize = MaterialTheme.typography.button.fontSize
+                if (titleText == "Edit item") { // Delete button
+                    fontSize = MaterialTheme.typography.h3.fontSize
+
+                    Button(onClick = onDelete, modifier = Modifier.weight(1f)) {
+                        Text("Delete", fontSize = fontSize)
+                    }
+                    Spacer(Modifier.width(6.dp))
+                }
+                Button(
+                    onClick = onDismissRequest,
+                    modifier = Modifier.weight(1f)
+                ) { // Dismiss button
+                    Text("Cancel", fontSize = fontSize)
+                }
+                Spacer(Modifier.width(6.dp))
+                Button( // Confirm button
+                    onClick = {
+                        item.name = name
+                        item.location = location
+                        item.amount = amount.toInt()
+                        onConfirm(item)
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(confirmText, fontSize = fontSize)
+                }
             }
         },
-        dismissButton = {
-            Button(onClick = onDismissRequest) {
-                Text("Cancel")
-            }
-        }
+        shape = MaterialTheme.shapes.large
     )
 }
