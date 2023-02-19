@@ -85,10 +85,11 @@ fun ItemList(itemsList: List<Item>, viewModel: ItemViewModel, searchQuery: Strin
     val itemsGroup = if (searchQuery != "") {
         itemsList
             .filter { it.name.contains(searchQuery, ignoreCase = true) }
-            .sortedByDescending { it.lastNeeded }.groupBy { it.location }
+            .sortedBy { it.name }
+            .groupBy { it.location }
     } else {
         itemsList
-            .sortedByDescending { it.lastNeeded }
+            .sortedBy { it.name }
             .groupBy { it.location }
     }.values.toList()
 
@@ -214,9 +215,8 @@ fun AddButton(viewModel: ItemViewModel) {
     }
 
     if (showDialog) {
-        ItemDialog(item = Item(
-            name = "", location = "", amount = 1, lastNeeded = Date().toString()
-        ),
+        ItemDialog(
+            item = Item(name = "", location = "", amount = 1),
             titleText = "Add item",
             confirmText = "Add",
             onDismissRequest = { showDialog = false },
