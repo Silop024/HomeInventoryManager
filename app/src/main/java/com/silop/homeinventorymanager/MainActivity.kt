@@ -9,13 +9,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.input.KeyboardType
@@ -56,19 +57,23 @@ fun HomeView(viewModel: ItemViewModel) {
                 .imePadding(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            ItemList(items, viewModel, searchQuery)
+            ItemList(items, viewModel, searchQuery, Modifier.weight(1f, fill = false))
             Row(
                 modifier = Modifier
                     .height(bottomRowHeight)
                     .fillMaxWidth()
-                    .weight(10f)
+                    .padding(start = 6.dp, end = 6.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom
             ) {
-                OutlinedTextField(
+                OutlinedTextField( // Search field
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     label = { Text("Search") },
+                    singleLine = true,
                     modifier = Modifier.background(MaterialTheme.colors.background)
                 )
+                Spacer(Modifier.width(6.dp))
                 AddButton(viewModel = viewModel)
             }
         }
@@ -76,21 +81,23 @@ fun HomeView(viewModel: ItemViewModel) {
 }
 
 @Composable
-fun ItemList(itemsList: List<Item>, viewModel: ItemViewModel, searchQuery: String) {
-    val itemsGroupMap: Map<String, List<Item>> = if (searchQuery != "") {
-        itemsList.filter { it.name.contains(searchQuery, ignoreCase = true)}.sortedByDescending { it.lastNeeded }.groupBy { it.location }
+fun ItemList(itemsList: List<Item>, viewModel: ItemViewModel, searchQuery: String, modifier: Modifier) {
+    val itemsGroup = if (searchQuery != "") {
+        itemsList
+            .filter { it.name.contains(searchQuery, ignoreCase = true) }
+            .sortedByDescending { it.lastNeeded }.groupBy { it.location }
     } else {
-        itemsList.sortedByDescending { it.lastNeeded }.groupBy { it.location }
-    }
+        itemsList
+            .sortedByDescending { it.lastNeeded }
+            .groupBy { it.location }
+    }.values.toList()
 
-    val itemsGroup = mutableListOf<List<Item>>()
-
-    for (group in itemsGroupMap.values) {
-        itemsGroup.add(group)
-    }
-
-    Column {
-        for (i in 0 until itemsGroup.size) {
+    Column(
+        modifier = modifier
+            .heightIn(min = 0.dp, max = LocalConfiguration.current.screenHeightDp.dp - bottomRowHeight)
+            .verticalScroll(rememberScrollState())
+    ) {
+        for (i in itemsGroup.indices) {
             ItemGroup(
                 itemsGroup = itemsGroup[i], viewModel = viewModel, color = when (i % 4) {
                     0 -> MaterialTheme.colors.primary
@@ -112,7 +119,7 @@ fun ItemGroup(itemsGroup: List<Item>, viewModel: ItemViewModel, color: Color) {
             text = itemsGroup[0].location,
             style = MaterialTheme.typography.h3,
             color = MaterialTheme.colors.onBackground,
-            modifier = Modifier.padding(top = 3.dp, start = 12.dp)
+            modifier = Modifier.padding(top = 3.dp, start = 12.dp, bottom = 3.dp)
         )
 
         if (collapsed) {
@@ -134,8 +141,9 @@ fun ItemGroup(itemsGroup: List<Item>, viewModel: ItemViewModel, color: Color) {
         } else {
             LazyColumn(
                 modifier = Modifier
-                    .padding(top = 3.dp, start = 3.dp, end = 3.dp)
+                    .padding(start = 3.dp, end = 3.dp)
                     .background(color, shape = MaterialTheme.shapes.large)
+                    .heightIn(max = 256.dp)
             ) {
                 items(items = itemsGroup) { item ->
                     ItemRow(item = item, viewModel)
@@ -195,8 +203,8 @@ fun AddButton(viewModel: ItemViewModel) {
         onClick = { showDialog = true },
         shape = CircleShape,
         modifier = Modifier
-            .height(bottomRowHeight)
-            .width(bottomRowHeight),
+            .height(bottomRowHeight - 6.dp)
+            .width(bottomRowHeight - 6.dp),
     ) {
         Text(
             text = "+",
