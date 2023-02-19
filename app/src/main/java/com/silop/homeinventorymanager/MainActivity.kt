@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.silop.homeinventorymanager.ui.theme.HomeInventoryManagerTheme
@@ -45,19 +46,29 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun HomeView(viewModel: ItemViewModel) {
     val items by viewModel.items.collectAsState(emptyList())
+    var searchQuery by remember { mutableStateOf("") }
 
     HomeInventoryManagerTheme {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colors.background)
+                .imePadding(),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            ItemList(items, viewModel, Modifier.weight(1f))
+            ItemList(items, viewModel, searchQuery)
             Row(
                 modifier = Modifier
                     .height(bottomRowHeight)
                     .fillMaxWidth()
+                    .weight(10f)
             ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search") },
+                    modifier = Modifier.background(MaterialTheme.colors.background)
+                )
                 AddButton(viewModel = viewModel)
             }
         }
@@ -65,8 +76,12 @@ fun HomeView(viewModel: ItemViewModel) {
 }
 
 @Composable
-fun ItemList(itemsList: List<Item>, viewModel: ItemViewModel, modifier: Modifier) {
-    val itemsGroupMap = itemsList.sortedByDescending { it.lastNeeded }.groupBy { it.location }
+fun ItemList(itemsList: List<Item>, viewModel: ItemViewModel, searchQuery: String) {
+    val itemsGroupMap: Map<String, List<Item>> = if (searchQuery != "") {
+        itemsList.filter { it.name.contains(searchQuery, ignoreCase = true)}.sortedByDescending { it.lastNeeded }.groupBy { it.location }
+    } else {
+        itemsList.sortedByDescending { it.lastNeeded }.groupBy { it.location }
+    }
 
     val itemsGroup = mutableListOf<List<Item>>()
 
@@ -90,7 +105,7 @@ fun ItemList(itemsList: List<Item>, viewModel: ItemViewModel, modifier: Modifier
 
 @Composable
 fun ItemGroup(itemsGroup: List<Item>, viewModel: ItemViewModel, color: Color) {
-    var collapsed by remember { mutableStateOf(true) }
+    var collapsed by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.clickable { collapsed = !collapsed }) {
         Text(
@@ -254,11 +269,6 @@ fun ItemDialog(
                         }
                     }
                 }
-                /*OutlinedTextField(
-                    value = location,
-                    onValueChange = { location = it },
-                    label = { Text("Location") }
-                )*/
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
