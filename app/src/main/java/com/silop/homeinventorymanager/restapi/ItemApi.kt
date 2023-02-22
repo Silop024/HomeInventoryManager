@@ -2,6 +2,7 @@ package com.silop.homeinventorymanager.restapi
 
 
 import com.silop.homeinventorymanager.Item
+import com.silop.homeinventorymanager.User
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
@@ -15,6 +16,8 @@ interface ItemApi {
     suspend fun updateItem(@Path("id") id: Int, @Body item: Item): Boolean
     @DELETE("items/{id}")
     suspend fun deleteItem(@Path("id") id: Int)
+    @POST("login")
+    suspend fun login(@Body user: User): Boolean
 }
 
 private val retrofit = Retrofit.Builder()
